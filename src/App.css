@@ -9,7 +9,7 @@
 }
 
 .App-user-image {
-  height: 20vmin;
+  height: 120px;
 }
 
 .App-header {
@@ -25,6 +25,7 @@
 
 .App-link {
   color: #61dafb;
+  margin-top: 20px;
 }
 
 @keyframes App-logo-spin {

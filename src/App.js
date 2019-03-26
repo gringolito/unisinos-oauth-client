@@ -1,8 +1,10 @@
 import './App.css';
 
 import React, { Component } from 'react';
-import GoogleLogin from 'react-google-login';
+import GoogleLogin, { GoogleLogout } from 'react-google-login';
 import logo from './logo.svg';
+
+var config = require('./config');
 
 function Logo(props) {
   let className;
@@ -29,38 +31,34 @@ class App extends Component {
     this.state = {
       message: 'Olá amiguinho! Por favor faça seu login.',
       image: logo,
-      rotate: true,
       authenticated: false,
       user: null,
       token: ''
     };
-    // this.handleGoogleLoginFailure = this.handleGoogleLoginFailure.bind(this);
-    // this.handleGoogleLoginSuccess = this.handleGoogleLoginSuccess.bind(this);
   }
 
   handleGoogleLoginSuccess = (response) => {
     const user = response.getBasicProfile();
     this.setState({
       message: 'Olá ' + user.getName() + ' (' + user.getEmail() + ')',
-      image: user.getImageUrl(),
-      rotate: false
+      image: user.getImageUrl()
     });
 
-    const tokenBlob = new Blob([JSON.stringify({access_token: response.accessToken}, null, 2)], {type : 'application/json'});
+    const tokenBlob = new Blob([JSON.stringify({ access_token: response.accessToken }, null, 2)], { type: 'application/json' });
     const options = {
-        method: 'POST',
-        body: tokenBlob,
-        mode: 'cors',
-        cache: 'default'
+      method: 'POST',
+      body: tokenBlob,
+      mode: 'cors',
+      cache: 'default'
     };
     fetch('http://localhost:4000/api/v1/auth/google', options).then(reply => {
-        const userAuthenticationToken = reply.headers.get('x-auth-token');
-        console.log(reply);
-        reply.json().then(userData => {
-            if (userAuthenticationToken) {
-                this.setState({authenticated: true, user: userData, token: userAuthenticationToken})
-            }
-        });
+      const userAuthenticationToken = reply.headers.get('x-auth-token');
+      console.log(reply);
+      reply.json().then(userData => {
+        if (userAuthenticationToken) {
+          this.setState({ authenticated: true, user: userData, token: userAuthenticationToken })
+        }
+      });
     })
 
   }
@@ -69,28 +67,42 @@ class App extends Component {
     console.log(response);
   }
 
+  handleGoogleLogout = () => {
+    this.setState({
+      authenticated: false,
+      user: null,
+      token: '',
+      message: 'At? mais amiguinho!',
+      image: logo
+    });
+  }
+
   render() {
-    let authentication;
+    let googleButton;
     let footer;
 
     if (this.state.authenticated) {
-      authentication = null;
+      googleButton = (
+        <GoogleLogout
+          onLogoutSuccess={this.handleGoogleLogout}
+          buttonText="Logout">
+        </GoogleLogout>
+      );
       footer = null;
     } else {
-      authentication = (
-          <GoogleLogin
-            clientId='499745103799-4bheeqtg6s96lvjf92jvp93a3tee8pco.apps.googleusercontent.com'
-            // theme='dark'
-            onSuccess={this.handleGoogleLoginSuccess}
-            onFailure={this.handleGoogleLoginFailure}
-          />
+      googleButton = (
+        <GoogleLogin
+          clientId={config.googleAuth.clientID}
+          onSuccess={this.handleGoogleLoginSuccess}
+          onFailure={this.handleGoogleLoginFailure}
+        />
       );
       footer = (
         <a className="App-link"
-           href="https://reactjs.org"
-           target="_blank"
-           rel="noopener noreferrer"
-         >
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Learn React
         </a>
       );
@@ -99,12 +111,11 @@ class App extends Component {
     return (
       <div className='App'>
         <header className='App-header'>
-          <Logo image={this.state.image} rotate={this.state.rotate} />
+          <Logo image={this.state.image} rotate={!this.state.authenticated} />
           <Message message={this.state.message} />
-          {authentication}
-          <br></br>
+          {googleButton}
           {footer}
-       </header>
+        </header>
       </div>
     );
   }
