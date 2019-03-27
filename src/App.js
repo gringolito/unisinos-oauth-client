@@ -3,6 +3,9 @@ import React, {Component} from 'react';
 import GoogleLogin, {GoogleLogout} from 'react-google-login';
 import logo from './logo.svg';
 import HealthPrograms from './HealthPrograms';
+import AppBar from '@material-ui/core/AppBar'
+import Toolbar from '@material-ui/core/Toolbar'
+import Typography from '@material-ui/core/Typography'
 
 var config = require('./config');
 
@@ -13,6 +16,20 @@ function Logo(props) {
 
 function Message(props) {
     return <p>{props.message}</p>;
+}
+
+const NavBar = () => {
+    return(
+        <div>
+        <AppBar position="static">
+            <Toolbar>
+                <Typography variant="title" color="inherit">
+                Apps4Health - Health Programs Manager
+                </Typography>
+            </Toolbar>
+        </AppBar>
+        </div>
+    )
 }
 
 class App extends Component {
@@ -108,6 +125,7 @@ class App extends Component {
         return (
             <div className='App'>
                 <header className='App-header'>
+                    <NavBar />
                     <Logo image={this.state.image} rotate={!this.state.authenticated} />
                     <Message message={this.state.message} />
                     {body}
