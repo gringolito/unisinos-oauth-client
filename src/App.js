@@ -51,6 +51,7 @@ class App extends Component {
         fetch('http://localhost:4000/api/v1/auth/google', options).then(reply => {
             const userAuthenticationToken = reply.headers.get('x-auth-token');
             reply.json().then(userData => {
+                console.log(userData)
                 if (userAuthenticationToken) {
                     this.setState({
                         authenticated: true,
@@ -81,7 +82,7 @@ class App extends Component {
     render() {
         var body = this.state.authenticated ? (
                 <div id='AppBody'>
-                    <HealthPrograms user={this.state.email} />
+                    <HealthPrograms user={ { id: this.state.user.id, auth: this.state.token } } />
                     <GoogleLogout
                         onLogoutSuccess={this.handleGoogleLogout}
                         buttonText='Logout'
