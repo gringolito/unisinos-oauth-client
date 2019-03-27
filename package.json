@@ -6,7 +6,8 @@
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
     "react-google-login": "^5.0.2",
-    "react-scripts": "2.1.8"
+    "react-scripts": "2.1.8",
+    "typescript": "^3.3.4000"
   },
   "scripts": {
     "start": "react-scripts start",
