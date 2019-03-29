@@ -24,19 +24,21 @@ class HealthPrograms extends Component {
         };
         fetch('http://localhost:4000/api/v1/users/healthPrograms/' + user.id, options).then(reply => {
             reply.json().then(userData => {
+                var str = JSON.stringify(userData, null, 2);
                 this.setState({
-                    subscribedPrograms: {
-                        name: userData.name,
-                        subcriptionDate: userData.subscriptionDate
-                    }
+                    subscribedPrograms: str
                 });
             });
         });
     }
 
     handleSubscribeClick = (user) => {
+        if (this.state.program === '') {
+            return;
+        }
+
         const program = new Blob(
-            [JSON.stringify({ healthProgram: this.state.program }, null, 2)],
+            [JSON.stringify({ healthProgram: this.state.program })],
             { type: 'application/json' }
         );
         const options = {
@@ -49,12 +51,31 @@ class HealthPrograms extends Component {
             }
         };
         fetch('http://localhost:4000/api/v1/users/healthPrograms/' + user.id, options).then(reply => {
-            console.log(reply);
+            this.setState({ program : '' });
         });
     }
 
     handleUnsubscribeClick = (user) => {
+        if (this.state.program === '') {
+            return;
+        }
 
+        const program = new Blob(
+            [JSON.stringify({ healthProgram: this.state.program })],
+            { type: 'application/json' }
+        );
+        const options = {
+            method: 'DELETE',
+            body: program,
+            mode: 'cors',
+            cache: 'default',
+            headers: {
+                'x-auth-token': user.auth
+            }
+        };
+        fetch('http://localhost:4000/api/v1/users/healthPrograms/' + user.id, options).then(reply => {
+            this.setState({ program : '' });
+        });
     }
 
     handleHealthProgramChange = (event) => {
@@ -67,27 +88,42 @@ class HealthPrograms extends Component {
 
     render() {
         return (
-            <div className='HealthPrograms'>
-                <TextField
-                    value={this.state.program}
-                    onChange={this.handleHealthProgramChange}
-                    label='Health Program'
-                    variant='outlined'
-                    margin='dense'
-                />
-                <Button
-                    onClick={() => this.handleSubscribeClick(this.props.user)}
-                    variant='contained'
-                >
-                    Subscribe
-                </Button>
-                <Button
-                    onClick={() => this.handleUnsubscribeClick(this.props.user)}
-                    variant='contained'
-                >
-                    Unsubscribe
-                </Button>
-                <p />
+            <div id='HealthPrograms' className='HealthProgram-header'>
+                <div className='App-spacer'>
+                    <TextField
+                        value={this.state.program}
+                        onChange={this.handleHealthProgramChange}
+                        label='Health Program'
+                        variant='outlined'
+                        margin='dense'
+                    />
+                    <div className='App-spacer'>
+                        <table className='HealthProgram-table'>
+                        <tbody>
+                        <tr>
+                        <td>
+                        <Button
+                            onClick={() => this.handleSubscribeClick(this.props.user)}
+                            variant='contained'
+                        >
+                            Subscribe
+                        </Button>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        <Button
+                            onClick={() => this.handleUnsubscribeClick(this.props.user)}
+                            variant='contained'
+                        >
+                            Unsubscribe
+                        </Button>
+                        </td>
+                        </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
                 <Button
                     onClick={() => this.handleGetHealthProgramsClick(this.props.user)}
                     variant='contained'

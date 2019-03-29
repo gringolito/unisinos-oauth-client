@@ -56,7 +56,7 @@ class App extends Component {
         });
 
         const tokenBlob = new Blob(
-            [JSON.stringify({ access_token: response.accessToken }, null, 2)],
+            [JSON.stringify({ access_token: response.accessToken })],
             { type: 'application/json' }
         );
         const options = {
@@ -98,26 +98,33 @@ class App extends Component {
     render() {
         var body = this.state.authenticated ? (
                 <div id='AppBody'>
+                    <div className='App-spacer'>
                     <HealthPrograms user={ { id: this.state.user.id, auth: this.state.token } } />
+                    </div>
+                    <div className='App-spacer'>
                     <GoogleLogout
                         onLogoutSuccess={this.handleGoogleLogout}
                         buttonText='Logout'
                     />
+                    </div>
                 </div>
             ) : (
                 <div id='AppBody'>
+                    <div className='App-spacer'>
                     <GoogleLogin
                         clientId={config.googleAuth.clientID}
                         onSuccess={this.handleGoogleLoginSuccess}
                         onFailure={this.handleGoogleLoginFailure}
                     />
-                    <br />
-                    <a className='App-link'
-                         href='https://reactjs.org'
-                         target='_blank'
-                         rel='noopener noreferrer'>
-                            Learn React
-                    </a>
+                    </div>
+                    <div className='App-spacer'>
+                        <a className='App-link'
+                             href='https://reactjs.org'
+                             target='_blank'
+                             rel='noopener noreferrer'>
+                                Learn React
+                        </a>
+                    </div>
                 </div>
             );
 
