@@ -1,58 +1,41 @@
-import './App.css';
 import React, {Component} from 'react';
-import GoogleLogin, {GoogleLogout} from 'react-google-login';
-import logo from './logo.svg';
-import HealthPrograms from './HealthPrograms';
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
-
-var config = require('./config');
-
-function Logo(props) {
-    const className = props.rotate ? 'App-logo' : 'App-user-image';
-    return <img src={props.image} className={className} alt='logo' />;
-}
-
-function Message(props) {
-    return <p>{props.message}</p>;
-}
-
-const NavBar = () => {
-    return(
-        <div>
-        <AppBar position="static">
-            <Toolbar>
-                <Typography variant="title" color="inherit">
-                Apps4Health - Health Programs Manager
-                </Typography>
-            </Toolbar>
-        </AppBar>
-        </div>
-    )
-}
+import Login from 'views/Login.jsx'
+import HealthPrograms from 'views/HealthPrograms.jsx'
 
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            message: 'Olá amiguinho! Por favor faça seu login.',
-            image: logo,
+            user : {
+                name: '',
+                email: '',
+                image: null,
+                subscribeProgram: '',
+                unsubscribeProgram: '',
+                subscribedPrograms: '',
+            },
             authenticated: false,
-            name: '',
-            email: '',
-            user: null,
-            token: ''
+            serverUserData: null,
+            token: '',
+            callbacks: {
+                onLogoutSuccess: this.handleGoogleLogout,
+                onSubscribeProgramChange: this.handleSubcribeProgramChange,
+                onSubscribeClick: this.handleSubscribeClick,
+                onUnsubscribeProgramChange: this.handleUnsubcribeProgramChange,
+                onUnsubscribeClick: this.handleUnsubscribeClick,
+                onGetHealthProgramsClick: this.handleGetHealthProgramsClick
+            }
         };
     }
 
     handleGoogleLoginSuccess = (response) => {
-        const user = response.getBasicProfile();
+        const userProfile = response.getBasicProfile();
         this.setState({
-            message: 'Olá ' + user.getName() + ' (' + user.getEmail() + ')',
-            name: user.getName(),
-            email: user.getEmail(),
-            image: user.getImageUrl()
+            user : {
+                name: userProfile.getName(),
+                email: userProfile.getEmail(),
+                image: userProfile.getImageUrl()
+            }
         });
 
         const tokenBlob = new Blob(
@@ -71,7 +54,7 @@ class App extends Component {
                 if (userAuthenticationToken) {
                     this.setState({
                         authenticated: true,
-                        user: userData,
+                        _user: userData,
                         token: userAuthenticationToken
                     });
                 }
@@ -85,57 +68,115 @@ class App extends Component {
 
     handleGoogleLogout = () => {
         this.setState({
+            user: {
+                name: '',
+                email: '',
+                image: null,
+                subscribeProgram: '',
+                unsubscribeProgram: '',
+                subscribedPrograms: '',
+            },
             authenticated: false,
-            user: null,
-            name: '',
-            email: '',
+            _user: null,
             token: '',
-            message: 'Até mais amiguinho!',
-            image: logo
+        });
+    }
+
+    handleSubcribeProgramChange = (event) => {
+        console.log(event);
+        if (event.target.value) {
+            this.setState({ user: { subscribeProgram: event.target.value } });
+        } else {
+            this.setState({ user: { subscribeProgram: '' } });
+        }
+    }
+
+    handleUnsubcribeProgramChange = (event) => {
+        console.log(event);
+        if (event.target.value) {
+            this.setState({ user: { unsubscribeProgram: event.target.value } });
+        } else {
+            this.setState({ user: { unsubscribeProgram: '' } });
+        }
+    }
+
+    handleGetHealthProgramsClick = () => {
+        const options = {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'default',
+            headers: {
+                'x-auth-token': this.state.token
+            }
+        };
+        fetch('http://localhost:4000/api/v1/users/healthPrograms/' + this.state._user.id, options)
+        .then(reply => {
+            reply.json().then(userData => {
+                var str = JSON.stringify(userData, null, 2);
+                this.setState({ user : { subscribedPrograms: str } });
+            });
+        });
+    }
+
+    handleSubscribeClick = () => {
+        if (this.state.user.subscribeProgram === '') {
+            return;
+        }
+
+        const program = new Blob(
+            [JSON.stringify({ healthProgram: this.state.user.subscribeProgram })],
+            { type: 'application/json' }
+        );
+        const options = {
+            method: 'POST',
+            body: program,
+            mode: 'cors',
+            cache: 'default',
+            headers: {
+                'x-auth-token': this.state.token
+            }
+        };
+        fetch('http://localhost:4000/api/v1/users/healthPrograms/' + this.state._user.id, options)
+        .then(reply => {
+            this.setState({ user : { subscribeProgram: '' } });
+        });
+    }
+
+    handleUnsubscribeClick = () => {
+        if (this.state.user.unsubscribeProgram === '') {
+            return;
+        }
+
+        const program = new Blob(
+            [JSON.stringify({ healthProgram: this.state.user.unsubscribeProgram })],
+            { type: 'application/json' }
+        );
+        const options = {
+            method: 'DELETE',
+            body: program,
+            mode: 'cors',
+            cache: 'default',
+            headers: {
+                'x-auth-token': this.state.token
+            }
+        };
+        fetch('http://localhost:4000/api/v1/users/healthPrograms/' + this.state._user.id, options)
+        .then(reply => {
+            this.setState({ user : { unsubscribeProgram: '' } });
         });
     }
 
     render() {
-        var body = this.state.authenticated ? (
-                <div id='AppBody'>
-                    <div className='App-spacer'>
-                    <HealthPrograms user={ { id: this.state.user.id, auth: this.state.token } } />
-                    </div>
-                    <div className='App-spacer'>
-                    <GoogleLogout
-                        onLogoutSuccess={this.handleGoogleLogout}
-                        buttonText='Logout'
-                    />
-                    </div>
-                </div>
+       return (
+            <div id='App'>
+            {this.state.authenticated ? (
+                <HealthPrograms user={this.state.user} callbacks={this.state.callbacks} />
             ) : (
-                <div id='AppBody'>
-                    <div className='App-spacer'>
-                    <GoogleLogin
-                        clientId={config.googleAuth.clientID}
-                        onSuccess={this.handleGoogleLoginSuccess}
-                        onFailure={this.handleGoogleLoginFailure}
-                    />
-                    </div>
-                    <div className='App-spacer'>
-                        <a className='App-link'
-                             href='https://reactjs.org'
-                             target='_blank'
-                             rel='noopener noreferrer'>
-                                Learn React
-                        </a>
-                    </div>
-                </div>
-            );
-
-        return (
-            <div className='App'>
-                <header className='App-header'>
-                    <NavBar />
-                    <Logo image={this.state.image} rotate={!this.state.authenticated} />
-                    <Message message={this.state.message} />
-                    {body}
-                </header>
+                <Login
+                    onLoginSuccess={this.handleGoogleLoginSuccess}
+                    onLoginFailure={this.handleGoogleLoginFailure}
+                />
+            )}
             </div>
         );
     }
