@@ -68,14 +68,7 @@ class App extends Component {
 
     handleGoogleLogout = () => {
         this.setState({
-            user: {
-                name: '',
-                email: '',
-                image: null,
-                subscribeProgram: '',
-                unsubscribeProgram: '',
-                subscribedPrograms: '',
-            },
+            user: { },
             authenticated: false,
             _user: null,
             token: '',
@@ -83,21 +76,23 @@ class App extends Component {
     }
 
     handleSubcribeProgramChange = (event) => {
-        console.log(event);
+        var newUser = this.state.user;
         if (event.target.value) {
-            this.setState({ user: { subscribeProgram: event.target.value } });
+            newUser.subscribeProgram = event.target.value;
         } else {
-            this.setState({ user: { subscribeProgram: '' } });
+            newUser.subscribeProgram = '';
         }
+        this.setState({ user: newUser });
     }
 
     handleUnsubcribeProgramChange = (event) => {
-        console.log(event);
+        var newUser = this.state.user;
         if (event.target.value) {
-            this.setState({ user: { unsubscribeProgram: event.target.value } });
+            newUser.unsubscribeProgram = event.target.value;
         } else {
-            this.setState({ user: { unsubscribeProgram: '' } });
+            newUser.subscribeProgram = '';
         }
+        this.setState({ user: newUser });
     }
 
     handleGetHealthProgramsClick = () => {
@@ -113,7 +108,9 @@ class App extends Component {
         .then(reply => {
             reply.json().then(userData => {
                 var str = JSON.stringify(userData, null, 2);
-                this.setState({ user : { subscribedPrograms: str } });
+                var newUser = this.state.user;
+                newUser.subscribedPrograms = str;
+                this.setState({ user : newUser });
             });
         });
     }
@@ -138,7 +135,9 @@ class App extends Component {
         };
         fetch('http://localhost:4000/api/v1/users/healthPrograms/' + this.state._user.id, options)
         .then(reply => {
-            this.setState({ user : { subscribeProgram: '' } });
+            var newUser = this.state.user;
+            newUser.subscribeProgram = '';
+            this.setState({ user : newUser });
         });
     }
 
@@ -162,7 +161,9 @@ class App extends Component {
         };
         fetch('http://localhost:4000/api/v1/users/healthPrograms/' + this.state._user.id, options)
         .then(reply => {
-            this.setState({ user : { unsubscribeProgram: '' } });
+            var newUser = this.state.user;
+            newUser.unsubscribeProgram = '';
+            this.setState({ user : newUser });
         });
     }
 
